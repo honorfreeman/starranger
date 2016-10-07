@@ -1,0 +1,89 @@
+<!DOCTYPE html>
+<html>
+	<head>
+ 		<meta http-equiv="Content-Type" content="text/html; charset=utf-8"/>
+ 		<meta name="viewport" content="width=device-width,user-scalable=no"/>
+ 	<title></title>
+</head>
+<body>
+	<script src="./js/jquery-3.1.0.js"></script>
+	<script type="text/javascript" src="./js/myfunmath.js"></script>
+
+<script type="text/javascript">
+
+function onLoad()
+{
+	$("#btn").click(function()
+	{
+		//$.post("./php/test.php", {param1:idfil}, backLogin);
+		name = $("#inputName").val();
+		score = $("#inputScore").val();
+		if (name!="")
+		{
+			if (score=="") {score="100";}
+			myjson = {"name": name, "score": score}
+			$.post("./php/score_record.php",{p:"record", myjson:myjson},
+				function(data)
+				{
+					//console.log(data);	
+					if (data!="error")
+						{
+							//var list = JSON.parse(data);
+							var listArray = JSON.parse(data);
+							timelistArray = listArray;
+							//console.log(listArray);
+							var b=0,index;
+							var showArray = [];
+							for (var i = 0; i < objLenght(listArray); i++) 
+								{
+								var a=0;
+								for (var j = 0; j < objLenght(timelistArray); j++) 
+									{
+										b = parseInt(timelistArray[j].score);
+										//console.log(b);
+										console.log(a+" < "+b);
+										if (parseInt(a)<parseInt(b))
+											{
+												a=timelistArray[j].score;
+												index=j;
+											}
+									}
+								//console.log(a);
+								showArray.push(timelistArray[index]);
+
+								console.log(timelistArray[index].score);
+
+								timelistArray[index].score=0;
+
+								//timelistArray.splice(index,1);
+								//delete timelistArray[index];
+								a=0;
+								}
+
+							for (var i = 0; i < objLenght(showArray); i++) 
+								{
+									console.log(showArray[i]);	
+								}
+
+							//console.log("list");
+						} else {console.log("error!!!")}
+				});										
+		}
+	});
+}
+
+</script>
+
+<script type="text/javascript">
+		$(document).ready(function(){onLoad();});
+</script>	
+	
+<div class="iddiv">
+	<input type="text" id="inputName" class="input" placeholder="имя игрока:" required autofocus> 
+	<input type="text" id="inputScore" class="input" placeholder="очки:" required autofocus> 
+	<button id="btn" class="btn" type="submit">ок</button>
+</div>
+
+
+
+</body>
