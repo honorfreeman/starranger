@@ -1,10 +1,14 @@
+var userName = '';
+
 var kbox=[], 		//противники
 	kboss=[], 		//боссы
 	packet=[], 		//снаряды игрока
 	evilRocket=[],  //снаряды противника
 	boomPoint=[],	//анимации взрывов
 	drop = [],		//обьекты анимации дропа
-	object = [];
+	bombDrop = [],  //обьекты анимации бомб
+	object = [],
+	stattext = [];
 
 var bossPart1 = false,
 	bossPart2 = false;
@@ -22,12 +26,12 @@ var speed = 7,
 	//скорость босса
 	speedboss = 0.5,
 	//скорость противника
-	speedkbox=1;
-	speed2 = false;
-	speed3 = false;
-	speed4 = false;
-	speed5 = false;
-
+	speedkbox=1,
+	speed2 = false,
+	speed3 = false,
+	speed4 = false,
+	speed5 = false,
+	showstat = true;
 
 //растояние видимости обьектов
 var visdist = 350;
@@ -199,7 +203,43 @@ statGame.x = getmaxx/2-statGame.w/2;
 statGame.y = getmaxy/2;	
 
 
+//LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP MENU
+//-----------------------------------------------
+game.newLoop('name', function () {
 
+   game.clear();
+   	game.fill('black');
+
+   skyDrawMove(startGame.getPositionC(),400);	
+
+   brush.drawText({
+     y : getmaxy/2-60, x : getmaxx / 2,
+     align : 'center',
+     text : 'Введите имя',
+     color : 'red',
+     size : 20
+   });
+      
+   pjs.dialogs.openLine(
+   	{
+     	x : getmaxx/2 -150 , y : getmaxy/2,
+     	w : 300, h : 50,
+     	size : 20,
+     	fillColor : "grey",
+   		color : "black"
+   	}, function (text) 
+   	{
+    	if (!text) return;
+    	userName = text;
+    	mouse.setCursorImage("imgs/shoot.png");
+    	game.setLoop('game');
+
+   	});
+
+   	game.setLoop('game');
+	
+});
+//-----------------------------------------------
 
 //LOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOOP MENU
 //-----------------------------------------------
@@ -229,6 +269,8 @@ game.newLoop('game', function()
 	textDraw();	  
 	//отрисовываем drop
 	craftDrawDrop();
+	//отрисовка мин
+	bombDraw();
 
 	//отлицаигрока
 	//pjs.camera.moveTimeC(spacecar.getPosition(1), 20);
@@ -246,7 +288,7 @@ game.newLoop('game', function()
 	packetDraw();
 	//--------------------------------------------------------------------
 	//если существуют обьекты анимации взрыва то проверяем не закончился ли он, если закончился то удаляем его
-	if (objLenght(boomPoint)>0) {endAnimation(boomPoint);};
+	endAnimation();
 	//--------------------------------------------------------------------
 	//какието действия с боссом
 	bossActDraw();
@@ -365,9 +407,6 @@ game.newLoop('game', function()
 				}
 		}
 	}
-
-	//проверка на победу
-	//checkWin();
 
 	//отрисовываем игрока
 	spacecar.draw();
