@@ -1,3 +1,48 @@
+//разные действия
+//-------------------------------------------------------------
+function differentActions()
+{
+			if ((points>400)&&(bossPart1==false)) 
+				{
+					createboss(1);
+					bossPart1=true;
+				} else
+			if ((points>1000)&&(bossPart2==false)) 
+				{
+					createboss(2);
+					speedboss = 1;
+					bossPart2=true;
+				}
+
+			if ((points>1500)&&(bossPart3==false)) 
+				{
+					createboss(2);
+					speedboss = 0.3;
+					bossPart3=true;
+				}
+
+			if ((points>500)&&(speed2==false))  
+				{
+					speedkbox=2;
+					speed2 = true;
+				}
+			if ((points>900)&&(speed3==false))  
+				{
+					speedkbox=3;
+					speed3 = true;
+				}
+			if ((points>1200)&&(speed3==false))  
+				{
+					speedkbox=3;
+					speed3 = true;
+				}
+			if ((points>1500)&&(speed4==false))  
+				{
+					speedkbox=4;
+					speed4 = true;
+				}
+}
+//-------------------------------------------------------------
 
 //осколки
 //-------------------------------------------------------------
@@ -17,19 +62,19 @@ function createDebris(pos,col,colmin,colmax,color)
 	timeobject.dy = pjs.math.random(-50, 50, true) * 0.1;
 	timeobject.settimer = 0;
 	timeobject.settimermax = irand(colmin, colmax);
-	object.push(timeobject);
+	debrisShip.push(timeobject);
   	}
 }
 
 //орисовка осколков
 function drawDebris()
 {
-		if (object) 
+	if (debrisShip) 
 		{ 
 		var dt = game.getDT(50);
-			for (i = 0; i <  objLenght(object); i++)
+			for (i = 0; i <  objLenght(debrisShip); i++)
 			{
-				el = object[i];
+				el = debrisShip[i];
     			el.move(point(el.dx*dt, el.dy*dt));
     			el.settimer = el.settimer + 1;
     			var fact = el.getDistanceC(spacecar.getPosition());
@@ -37,11 +82,11 @@ function drawDebris()
     				{
     					el.draw();
     				}
-    			if (el.settimer>el.settimermax) {object.splice(i,1);}
+    			if (el.settimer>el.settimermax) {debrisShip.splice(i,1);}
     			if (el.isDynamicIntersect(spacecar.getDynamicBox()))
     			{    				
     				countingPoints(Math.floor(el.w/2));
-    				object.splice(i,1);	
+    				debrisShip.splice(i,1);	
     			} 
 			}
 		}
@@ -408,6 +453,17 @@ function keyIsDown()
 }
 //-------------------------------------------
 
+//действия игрока, отрисовка
+function spacecarActDraw()
+{
+	//поворачиваем игрока к мышке
+	spacecar.rotate(mouse.getPosition())
+	//отрисовываем игрока
+	spacecar.draw();
+	//отрисовываем жизни над игроком
+	lifeDraw(spacecar);
+}
+//создание, отрисовка, действия противника
 //-------------------------------------------
 function createkbox()
 {
@@ -463,13 +519,84 @@ function createkbox()
 }
 //-------------------------------------------
 
+//назначаем действия над боссом
+function kboxActDraw()
+{
+	for (var i = 0; i < objLenght(kbox); i++) 
+	{
+		//двигаем противника в сторону игрока
+		kbox[i].moveAngle(speedkbox);	
+		//поворачиваем противника в сторону игрока
+		kbox[i].rotate(spacecar.getPosition(1));
+		//проверка жизней и назначение действий
+		if (kbox[i].life==lifekbox) 
+		{
+		}else 
+		if (kbox[i].life==1)
+		{
+			//назначаем аимацию смерти
+			//kbox[i].setAnimation(anim.dethdragon);
+			//назначаем скорость 0
+			//kbox[i].moveAngle();
+		} else
+		if (kbox[i].life<=0)
+		{
+			//добавляем в счет
+			countingPoints(10);
+
+			//осколки createDebris(позиция создания, количество осколков,время жизни мин, время жизни максимум, цвет осколков);
+			createDebris(kbox[i].getPosition(),10,100,150,"grey");
+
+			//при убийстве противника есть вероятность выпадения drop'а
+			craftCreateDrop(kbox[i].getPosition(),20);
+
+			//удаляем убитого			
+			kbox.splice(i,1); 	
+		}
+	
+		if (kbox[i])
+		{
+			//отрисовываем противника
+			var fact = kbox[i].getDistanceC(spacecar.getPosition());
+    		if (fact <= visdist) 
+    			{
+    				kbox[i].visible=true; 
+
+					kbox[i].draw();   	
+					//отрисовываем жизни			
+    				lifeDraw(kbox[i]);
+    			}
+			//проверка на поражение	
+			//если kbox[i] доходят до spacecar: конец игры
+			if (spacecar.isDynamicIntersect(kbox[i].getDynamicBox()))
+				{
+					if (spacecar.life>1)
+						{				
+							//анимация взрыва об игрока			
+							boomDraw(kbox[i].getPosition().x,kbox[i].getPosition().y,spaceshipboom.ssboom);
+							//минус жизнь игроку 
+							spacecar.life--;
+							//удаляем взорвавшегося противника
+							kbox.splice(i,1);					
+						} else
+						{
+							//добавить анимацию взрыва игрока
+							checkDestruction();							
+						}
+				}
+		}
+	}
+	
+}
+//создание босса
+//-------------------------------------------
 function createboss(x)
 {
 
 for (var i=0;i<x;i++) 
 	{
 		var boss = new game.newAnimationObject({animation:animenemy1.enemy1,delay:25,w:96,h:82});
-		boss.life = 10;
+		boss.life = lifekboss;
 		rand = irand(1, 4);
 		wh = game.getWH();
 		switch(rand)
